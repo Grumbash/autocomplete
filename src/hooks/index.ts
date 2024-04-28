@@ -1,2 +1,2 @@
 export { usePokemons } from "./usePokemons";
-export { useAutoComplete } from './useAutoComplete';
+export { useAutoComplete, type Option, type FilterSuggestions } from './useAutoComplete';

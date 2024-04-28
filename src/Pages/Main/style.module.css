@@ -12,3 +12,12 @@
     margin-bottom: 20px;
     color: #4f386b
 }
+
+.error {
+    color: red;
+    background: #ffe3e3;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid red;
+  }
+  

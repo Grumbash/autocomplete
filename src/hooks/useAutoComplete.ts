@@ -1,44 +1,50 @@
 import { useEffect, useState, useCallback } from "react";
 
-interface Option {
+export type Option = {
   name: string;
-}
+};
 
-export const useAutoComplete = <T extends Option>(options: T[]) => {
+export type FilterSuggestions = <T extends Option>(
+  options: T[],
+  input: string
+) => Promise<T[]>;
+
+export const useAutoComplete = <T extends Option>(
+  options: T[],
+  filterSuggestions: FilterSuggestions
+) => {
   const [input, setInput] = useState("");
   const [filteredSuggestions, setFilteredSuggestions] = useState<T[]>([]);
   const [isActive, setIsActive] = useState(false);
   const [debouncedInputValue, setDebouncedInputValue] = useState("");
   const [selectedSuggestion, setSelectedSuggestion] = useState<T>();
-
-  const filterSuggestions = useCallback(
-    async (input: string): Promise<T[]> => {
-      if (!input) return [];
-
-      return new Promise<T[]>((resolve) => {
-        setTimeout(() => {
-          const filtered = options.filter((option) =>
-            option.name.toLowerCase().includes(input.toLowerCase())
-          );
-          resolve(filtered);
-        }, 300);
-      });
-    },
-    [options]
-  );
+  const [error, setError] = useState<string | null>(null);
 
   const fetchFilteredData = useCallback(async () => {
     if (!debouncedInputValue) {
       setFilteredSuggestions([]);
       setIsActive(false);
-
+      setError(null);
       return;
     }
 
-    const filteredData = await filterSuggestions(debouncedInputValue);
-    setFilteredSuggestions(filteredData);
-    setIsActive(filteredData.length > 0);
-  }, [debouncedInputValue, filterSuggestions]);
+    try {
+      const filteredData = await filterSuggestions(options, debouncedInputValue);
+      setError(null); // Clear any previous errors
+
+      if (!filteredData.length) {
+        setFilteredSuggestions([{ name: "Nothing Found" } as T]);
+      } else {
+        setFilteredSuggestions(filteredData);
+      }
+
+      setIsActive(true);
+    } catch (err) {
+      setError("An error occurred while filtering suggestions.");
+      setFilteredSuggestions([]);
+      setIsActive(false);
+    }
+  }, [debouncedInputValue, filterSuggestions, options]);
 
   useEffect(() => {
     fetchFilteredData();
@@ -69,13 +75,14 @@ export const useAutoComplete = <T extends Option>(options: T[]) => {
     setFilteredSuggestions([]);
     setIsActive(false);
     setSelectedSuggestion(undefined);
-  }
+  };
 
   return {
     input,
     filteredSuggestions,
     isActive,
     selectedSuggestion,
+    error,
     handleInputChange,
     handleSuggestionClick,
     handleDismissSuggestionClick,

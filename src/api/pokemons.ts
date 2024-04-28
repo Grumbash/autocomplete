@@ -29,3 +29,16 @@ export const getPokemons = async ({
 
   return fetchWithCache(key, fetcher);
 };
+
+export const getFilteredPokemons = async (options: Pokemon[], input: string): Promise<Pokemon[]> => {
+  if (!input) return [];
+
+  return new Promise<Pokemon[]>((resolve) => {
+    setTimeout(() => {
+      const filtered = options.filter((option) =>
+        option.name.toLowerCase().includes(input.toLowerCase())
+      );
+      resolve(filtered);
+    }, 300);
+  });
+};
